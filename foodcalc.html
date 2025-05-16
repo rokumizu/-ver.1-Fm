@@ -140,6 +140,22 @@
       font-size: 12px;
       width: 48%;
     }
+
+    /* 戻るボタン */
+    .back-button {
+      display: inline-block;
+      margin: 20px auto 0;
+      padding: 6px 14px;
+      font-size: 13px;
+      background-color: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .back-button:hover {
+      background-color: #bbb;
+    }
   </style>
 </head>
 <body>
@@ -337,6 +353,18 @@
     document.getElementById("warning").textContent = warning;
   }
 
+  // 戻るボタン
+  function goBack() {
+    window.history.back();
+  }
+
+  // 戻るボタンの追加
+  const backButton = document.createElement('button');
+  backButton.textContent = '← 戻る';
+  backButton.classList.add('back-button');
+  backButton.onclick = goBack;
+  document.body.appendChild(backButton);
+
   // 食品の編集
   function editFood(name) {
     const foods = JSON.parse(localStorage.getItem("foodItems") || "[]");
@@ -398,18 +426,6 @@
     loadFoods();
   });
 
-  // 登録ユーザーのリストを更新
-  function updateUserSelect() {
-    const users = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
-    const select = document.getElementById("userSelect");
-    select.innerHTML = '<option value="">選択してください</option>';
-    Object.keys(users).forEach(name => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      select.appendChild(option);
-    });
-  }
 </script>
 
 </body>
