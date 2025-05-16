@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>栄養カロリー計算ソフト</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4faff;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #0077cc;
+      margin-bottom: 20px;
+    }
+    .grid, .edit-grid {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .category {
+      flex: 1;
+      min-width: 250px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    .category h2 {
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+    .card, .edit-card {
+      margin-bottom: 15px;
+    }
+    .card label, .edit-card label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .card input, .edit-card input, .edit-card select {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .result {
+      font-size: 14px;
+      margin-top: 5px;
+      background: #eef;
+      padding: 5px;
+      border-radius: 6px;
+    }
+    .summary, .warning, #target {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    .warning {
+      color: red;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+    .controls {
+      max-width: 500px;
+      margin: 0 auto 20px;
+      text-align: center;
+    }
+    .controls select, .controls button {
+      padding: 8px;
+      font-size: 14px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    /* スマホ版レスポンシブ */
+    @media (max-width: 600px) {
+      .controls, .grid, .edit-grid {
+        flex-direction: column;
+        align-items: center;
+      }
+      .category {
+        min-width: 100%;
+      }
+    }
+
+    /* ポップアップスタイル */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      text-align: center;
+    }
+    .popup-content input, .popup-content select {
+      margin: 10px 0;
+      width: 100%;
+    }
+    .popup-content button {
+      background: #0077cc;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      border-radius: 6px;
+    }
+    .popup-content button:hover {
+      background: #005fa3;
+    }
+
+    .food-action-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .food-action-buttons button {
+      padding: 5px;
+      font-size: 12px;
+      width: 48%;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🍱 栄養カロリー計算ソフト</h1>
+
+<div class="controls">
+  <label for="userSelect">🎯 PFC目標を選択:</label>
+  <select id="userSelect" onchange="loadUserData()">
+    <option value="">選択してください</option>
+  </select>
+  <div id="target">🎯 目標摂取カロリー: 0 kcal｜P: 0 g｜F: 0 g｜C: 0 g</div>
+</div>
+
+<!-- 🧾 食材編集セクション -->
+<h2 style="text-align:center;">✏️ 食材編集</h2>
+<div class="edit-grid" id="edit-grid"></div>
+<div class="controls">
+  <button onclick="openPopup()">＋ 食材を追加</button>
+  <button onclick="saveFoods()">💾 保存</button>
+  <button onclick="resetFoods()">🔄 全リセット</button>
+</div>
+
+<!-- 🧮 食材入力エリア -->
+<h2 style="text-align:center;">🥗 食材入力</h2>
+<div class="grid" id="food-grid"></div>
+
+<!-- ✅ 結果表示 -->
+<div class="summary" id="summary">
+  ✅ 総摂取カロリー: 0 kcal｜P: 0 g｜F: 0 g｜C: 0 g
+</div>
+<div class="warning" id="warning"></div>
+
+<!-- ポップアップフォーム -->
+<div id="foodPopup" class="popup">
+  <div class="popup-content">
+    <h3>食材を追加</h3>
+    <label for="foodName">名前</label>
+    <input type="text" id="foodName" placeholder="食材名を入力" required>
+
+    <label for="foodKcal">kcal/g</label>
+    <input type="number" id="foodKcal" step="0.01" required>
+
+    <label for="foodP">P/g</label>
+    <input type="number" id="foodP" step="0.01" required>
+
+    <label for="foodF">F/g</label>
+    <input type="number" id="foodF" step="0.01" required>
+
+    <label for="foodC">C/g</label>
+    <input type="number" id="foodC" step="0.01" required>
+
+    <label for="foodCategory">カテゴリ</label>
+    <select id="foodCategory">
+      <option value="P">タンパク質（P）</option>
+      <option value="F">脂質（F）</option>
+      <option value="C">炭水化物（C）</option>
+    </select>
+
+    <button onclick="addFoodToList()">追加</button>
+    <button onclick="closePopup()">キャンセル</button>
+  </div>
+</div>
+
+<script>
+  let targets = { protein: 120, fat: 50, carb: 200 };
+
+  // ユーザー選択によるデータ読み込み
+  function loadUserData() {
+    const selectedUser = document.getElementById("userSelect").value;
+    const users = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+    const targetElement = document.getElementById("target");
+
+    if (selectedUser && users[selectedUser]) {
+      const user = users[selectedUser];
+      targetElement.textContent = `🎯 目標摂取カロリー: ${user.intake} kcal｜P: ${user.proteinAvg} g｜F: ${user.fatGram} g｜C: ${user.carbGram} g`;
+    } else {
+      targetElement.textContent = "🎯 目標摂取カロリー: 0 kcal｜P: 0 g｜F: 0 g｜C: 0 g";
+    }
+  }
+
+  // ユーザーのリストを更新
+  function updateUserSelect() {
+    const users = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+    const userSelect = document.getElementById("userSelect");
+    userSelect.innerHTML = '<option value="">選択してください</option>';
+    for (const user in users) {
+      const option = document.createElement("option");
+      option.value = user;
+      option.textContent = user;
+      userSelect.appendChild(option);
+    }
+  }
+
+  function openPopup() {
+    document.getElementById("foodPopup").style.display = "flex";
+  }
+
+  function closePopup() {
+    document.getElementById("foodPopup").style.display = "none";
+  }
+
+  // 食品追加
+  function addFoodToList() {
+    const name = document.getElementById("foodName").value;
+    const kcal = parseFloat(document.getElementById("foodKcal").value);
+    const p = parseFloat(document.getElementById("foodP").value);
+    const f = parseFloat(document.getElementById("foodF").value);
+    const c = parseFloat(document.getElementById("foodC").value);
+    const category = document.getElementById("foodCategory").value;
+
+    if (name && !isNaN(kcal) && !isNaN(p) && !isNaN(f) && !isNaN(c)) {
+      const newFood = { name, kcal, p, f, c, category };
+      const foods = JSON.parse(localStorage.getItem("foodItems") || "[]");
+      foods.push(newFood);
+      localStorage.setItem("foodItems", JSON.stringify(foods));
+      closePopup();
+      loadFoods();
+    } else {
+      alert("すべての項目を入力してください！");
+    }
+  }
+
+  // 食品リスト表示
+  function loadFoods() {
+    const foods = JSON.parse(localStorage.getItem("foodItems") || "[]");
+    const categories = { "P": [], "F": [], "C": [] };
+    foods.forEach(item => {
+      categories[item.category].push(item);
+    });
+
+    const foodGrid = document.getElementById("food-grid");
+    foodGrid.innerHTML = "";
+    Object.keys(categories).forEach(category => {
+      const categoryDiv = document.createElement("div");
+      categoryDiv.className = "category";
+      categoryDiv.innerHTML = `<h2>${category === "P" ? "タンパク質（P）" : category === "F" ? "脂質（F）" : "炭水化物（C）"}</h2>`;
+      categories[category].forEach(item => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <label>${item.name}</label>
+          <input type="number" data-name="${item.name}" data-cal="${item.kcal}" data-p="${item.p}" data-f="${item.f}" data-c="${item.c}">
+          <div class="result"></div>
+          <div class="food-action-buttons">
+            <button onclick="editFood('${item.name}')">編集</button>
+            <button onclick="deleteFood('${item.name}')">削除</button>
+          </div>
+        `;
+        categoryDiv.appendChild(div);
+      });
+      foodGrid.appendChild(categoryDiv);
+    });
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener("input", updateSummary);
+    });
+    updateSummary();
+  }
+
+  // 摂取カロリーなどを更新
+  function updateSummary() {
+    let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
+
+    document.querySelectorAll('.card').forEach(card => {
+      const input = card.querySelector('input');
+      const result = card.querySelector('.result');
+      const gram = parseFloat(input.value) || 0;
+      const cal = parseFloat(input.dataset.cal);
+      const p = parseFloat(input.dataset.p);
+      const f = parseFloat(input.dataset.f);
+      const c = parseFloat(input.dataset.c);
+
+      const kcal = gram * cal;
+      const prot = gram * p;
+      const fat = gram * f;
+      const carb = gram * c;
+
+      result.textContent = `この品目: ${kcal.toFixed(2)} kcal｜P: ${prot.toFixed(2)}｜F: ${fat.toFixed(2)}｜C: ${carb.toFixed(2)}`;
+
+      totalCal += kcal;
+      totalP += prot;
+      totalF += fat;
+      totalC += carb;
+    });
+
+    document.getElementById("summary").textContent =
+      `✅ 総摂取カロリー: ${totalCal.toFixed(2)} kcal｜P: ${totalP.toFixed(2)} g｜F: ${totalF.toFixed(2)} g｜C: ${totalC.toFixed(2)} g`;
+
+    let warning = "";
+    if (totalP > targets.protein) warning += `⚠ タンパク質が ${(totalP - targets.protein).toFixed(2)} g オーバー\n`;
+    if (totalF > targets.fat) warning += `⚠ 脂質が ${(totalF - targets.fat).toFixed(2)} g オーバー\n`;
+    if (totalC > targets.carb) warning += `⚠ 炭水化物が ${(totalC - targets.carb).toFixed(2)} g オーバー`;
+
+    document.getElementById("warning").textContent = warning;
+  }
+
+  // 食品の編集
+  function editFood(name) {
+    const foods = JSON.parse(localStorage.getItem("foodItems") || "[]");
+    const food = foods.find(f => f.name === name);
+    if (food) {
+      document.getElementById("foodName").value = food.name;
+      document.getElementById("foodKcal").value = food.kcal;
+      document.getElementById("foodP").value = food.p;
+      document.getElementById("foodF").value = food.f;
+      document.getElementById("foodC").value = food.c;
+      document.getElementById("foodCategory").value = food.category;
+      openPopup();
+      deleteFood(name); // 削除した上で編集を行う
+    }
+  }
+
+  // 食品の削除
+  function deleteFood(name) {
+    let foods = JSON.parse(localStorage.getItem("foodItems") || "[]");
+    foods = foods.filter(f => f.name !== name);
+    localStorage.setItem("foodItems", JSON.stringify(foods));
+    loadFoods(); // 食品リストを再度読み込む
+  }
+
+  // 食品の保存
+  function saveFoods() {
+    const editGrid = document.getElementById("edit-grid");
+    const data = [];
+    editGrid.querySelectorAll(".edit-card").forEach(card => {
+      const inputs = card.querySelectorAll("input");
+      const select = card.querySelector("select");
+      const name = inputs[0].value.trim();
+      if (name !== "") {
+        data.push({
+          name: name,
+          kcal: parseFloat(inputs[1].value),
+          p: parseFloat(inputs[2].value),
+          f: parseFloat(inputs[3].value),
+          c: parseFloat(inputs[4].value),
+          category: select.value
+        });
+      }
+    });
+    localStorage.setItem("foodItems", JSON.stringify(data));
+    alert("保存しました！");
+    loadFoods();
+  }
+
+  // 食品リセット
+  function resetFoods() {
+    if (confirm("すべての食品データを削除しますか？")) {
+      localStorage.removeItem("foodItems");
+      loadFoods();
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    updateUserSelect();
+    loadFoods();
+  });
+
+  // 登録ユーザーのリストを更新
+  function updateUserSelect() {
+    const users = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+    const select = document.getElementById("userSelect");
+    select.innerHTML = '<option value="">選択してください</option>';
+    Object.keys(users).forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      select.appendChild(option);
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カロリー管理アプリ</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f0f8ff, #e0f7fa);
+      color: #333;
+    }
+
+    .top-container {
+      max-width: 500px;
+      margin: 60px auto;
+      background: white;
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #0077cc;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+
+    .main-button {
+      display: block;
+      width: 80%;
+      max-width: 300px;
+      margin: 10px auto;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background-color: #0077cc;
+      border: none;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+
+    .main-button:hover {
+      background-color: #005fa3;
+    }
+  </style>
+</head>
+<body>
+  <main class="top-container">
+    <h1>🍽️ カロリー管理アプリ</h1>
+    <p>あなたに最適な摂取カロリーを導き出し、食事記録と比較できます。</p>
+
+    <a href="register.html" class="main-button">▶ 身体情報を登録</a>
+    <a href="foodcalc.html" class="main-button">▶ 食事カロリー計算</a>
+    <a href="edit_items.html" class="main-button">▶ 食材項目の編集</a>
+  </main>
+</body>
+</html>

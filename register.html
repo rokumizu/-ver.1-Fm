@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>身体情報登録とPFC計算</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      padding: 15px;
+      color: #333;
+      font-size: 14px;
+    }
+    h1 {
+      text-align: center;
+      color: #0077cc;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .form-section, .result-section {
+      max-width: 500px;
+      margin: 15px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 15px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    input, select {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #0077cc;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #005fa3; }
+    .reset-button { background-color: #ff9900; }
+    .reset-button:hover { background-color: #cc7a00; }
+    .delete-button { background-color: #e74c3c; }
+    .delete-button:hover { background-color: #c0392b; }
+    .result-section { background: #e9f6ff; font-size: 13px; }
+    .result-section div { margin-bottom: 8px; }
+    .back-button {
+      display: block;
+      margin: 20px auto 0;
+      padding: 6px 14px;
+      font-size: 13px;
+      background-color: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .back-button:hover { background-color: #bbb; }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 身体情報入力と保存</h1>
+
+  <div class="form-section">
+    <label for="username">名前</label>
+    <input type="text" id="username" placeholder="まさきち">
+
+    <label for="weight">体重 (kg)</label>
+    <input type="number" id="weight" step="0.1">
+
+    <label for="activity">活動レベル</label>
+    <select id="activity">
+      <option value="1.3">1.3（週1〜2筋トレ・デスクワーク）</option>
+      <option value="1.5">1.5（週4〜5高重量筋トレ）</option>
+      <option value="2.0">2.0（ボディビルレベル）</option>
+    </select>
+
+    <label for="goal">減量目標（月）</label>
+    <select id="goal">
+      <option value="0">なし</option>
+      <option value="280">−1kg（−280kcal）</option>
+      <option value="480">−2kg（−480kcal）</option>
+      <option value="720">−3kg（−720kcal）</option>
+    </select>
+
+    <label for="fatPercent">脂質の割合（%）</label>
+    <input type="number" id="fatPercent" value="25" step="1" min="10" max="50">
+
+    <button onclick="calculate()">✅ 計算 & 保存</button>
+    <button class="reset-button" onclick="resetForm()">🔄 入力リセット</button>
+  </div>
+
+  <div class="form-section">
+    <label for="userList">📂 登録済みの名前</label>
+    <select id="userList" onchange="loadUserData()">
+      <option value="">選択してください</option>
+    </select>
+    <button class="delete-button" onclick="deleteUser()">🗑️ 選択した名前を削除</button>
+  </div>
+
+  <div class="result-section" id="results" style="display:none;">
+    <h2 style="font-size: 16px; margin-bottom: 10px;">🧮 結果</h2>
+    <div id="bmr"></div>
+    <div id="tdee"></div>
+    <div id="intake"></div>
+    <div id="protein"></div>
+    <div id="fat"></div>
+    <div id="carb"></div>
+  </div>
+
+  <button class="back-button" onclick="history.back()">← 戻る</button>
+
+  <script>
+    function calculate() {
+      const name = document.getElementById("username").value.trim();
+      const weight = parseFloat(document.getElementById("weight").value);
+      const activity = parseFloat(document.getElementById("activity").value);
+      const goal = parseFloat(document.getElementById("goal").value);
+      const fatPercent = parseFloat(document.getElementById("fatPercent").value);
+
+      if (!name || !weight || weight <= 0) {
+        alert("すべての情報を正しく入力してください。");
+        return;
+      }
+
+      const bmr = weight * 22;
+      const tdee = bmr * activity;
+      const intake = tdee - goal;
+
+      const proteinAvg = (weight * 1.5 + weight * 2.0) / 2;
+      const proteinKcal = proteinAvg * 4;
+      const fatKcal = intake * (fatPercent / 100);
+      const fatGram = fatKcal / 9;
+      const carbKcal = intake - proteinKcal - fatKcal;
+      const carbGram = carbKcal / 4;
+
+      const result = { name, bmr, tdee, intake, proteinAvg, proteinKcal, fatGram, fatKcal, carbGram, carbKcal };
+
+      const allData = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+      allData[name] = result;
+      localStorage.setItem("pfcAllUsers", JSON.stringify(allData));
+
+      updateUserList();
+      showResult(result);
+    }
+
+    function showResult(r) {
+      document.getElementById("results").style.display = "block";
+      document.getElementById("bmr").textContent = `${r.name} さんの基礎代謝: ${r.bmr.toFixed(2)} kcal`;
+      document.getElementById("tdee").textContent = `活動代謝: ${r.tdee.toFixed(2)} kcal`;
+      document.getElementById("intake").textContent = `目標摂取カロリー: ${r.intake.toFixed(2)} kcal`;
+      document.getElementById("protein").textContent = `タンパク質: ${r.proteinAvg.toFixed(2)} g（${r.proteinKcal.toFixed(2)} kcal）`;
+      document.getElementById("fat").textContent = `脂質: ${r.fatGram.toFixed(2)} g（${r.fatKcal.toFixed(2)} kcal）`;
+      document.getElementById("carb").textContent = `炭水化物: ${r.carbGram.toFixed(2)} g（${r.carbKcal.toFixed(2)} kcal）`;
+    }
+
+    function updateUserList() {
+      const data = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+      const select = document.getElementById("userList");
+      select.innerHTML = '<option value="">選択してください</option>';
+      Object.keys(data).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+    }
+
+    function loadUserData() {
+      const selected = document.getElementById("userList").value;
+      const data = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+      if (data[selected]) showResult(data[selected]);
+    }
+
+    function deleteUser() {
+      const selected = document.getElementById("userList").value;
+      if (!selected) {
+        alert("削除する名前を選択してください。");
+        return;
+      }
+
+      if (!confirm(`「${selected}」の登録情報を削除しますか？`)) return;
+
+      const data = JSON.parse(localStorage.getItem("pfcAllUsers") || "{}");
+      delete data[selected];
+      localStorage.setItem("pfcAllUsers", JSON.stringify(data));
+
+      updateUserList();
+      document.getElementById("userList").value = "";
+      document.getElementById("results").style.display = "none";
+    }
+
+    function resetForm() {
+      document.getElementById("username").value = "";
+      document.getElementById("weight").value = "";
+      document.getElementById("activity").value = "1.3";
+      document.getElementById("goal").value = "0";
+      document.getElementById("fatPercent").value = "25";
+      document.getElementById("results").style.display = "none";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => updateUserList());
+  </script>
+
+</body>
+</html>

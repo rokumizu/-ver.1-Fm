@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>食材項目の編集</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f0f8ff, #e0f7fa);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #0077cc;
+      margin-bottom: 20px;
+    }
+
+    #item-list .card {
+      background: #f9f9ff;
+      border: 1px solid #cce;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+
+    #item-list input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button, .back-button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0077cc;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover, .back-button:hover {
+      background-color: #005fa3;
+    }
+
+    .remove {
+      background: #e74c3c;
+      margin-top: 5px;
+    }
+
+    .remove:hover {
+      background: #c0392b;
+    }
+
+    .back-button {
+      width: auto;
+      padding: 8px 14px;
+      font-size: 14px;
+      background-color: #cccccc;
+      color: #333;
+      margin-top: 25px;
+      display: inline-block;
+    }
+
+    .back-button:hover {
+      background-color: #bbbbbb;
+    }
+
+    .reset-button {
+      background-color: #ffaa00;
+    }
+
+    .reset-button:hover {
+      background-color: #e69500;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>🛠️ 食材項目の編集</h1>
+
+    <form id="item-form" autocomplete="off">
+      <div id="item-list"></div>
+      <button type="button" id="add-item">＋ 食材を追加</button>
+      <button type="submit">💾 保存する</button>
+      <button type="button" id="reset-all" class="reset-button">🔄 リセット</button>
+    </form>
+
+    <!-- 🔙 ブラウザバックボタン -->
+    <button type="button" onclick="history.back()" class="back-button">← 戻る</button>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const itemList = document.getElementById("item-list");
+      const form = document.getElementById("item-form");
+      const addBtn = document.getElementById("add-item");
+      const resetBtn = document.getElementById("reset-all");
+
+      function createCard(item = {}) {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <input type="text" placeholder="名前" value="${item.name || ''}" autocomplete="off" />
+          <input type="number" placeholder="kcal/g" value="${item.kcal || ''}" step="0.01" autocomplete="off" />
+          <input type="number" placeholder="P/g" value="${item.p || ''}" step="0.01" autocomplete="off" />
+          <input type="number" placeholder="F/g" value="${item.f || ''}" step="0.01" autocomplete="off" />
+          <input type="number" placeholder="C/g" value="${item.c || ''}" step="0.01" autocomplete="off" />
+          <button type="button" class="remove">削除</button>
+        `;
+        div.querySelector(".remove").addEventListener("click", () => div.remove());
+        itemList.appendChild(div);
+      }
+
+      const savedItems = JSON.parse(localStorage.getItem("foodItems") || "[]");
+      savedItems.forEach(createCard);
+
+      addBtn.addEventListener("click", () => createCard());
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const items = [];
+        itemList.querySelectorAll(".card").forEach(card => {
+          const inputs = card.querySelectorAll("input");
+          const [name, kcal, p, f, c] = [...inputs].map(i => i.value);
+          if (name.trim()) {
+            items.push({
+              name: name.trim(),
+              kcal: parseFloat(kcal),
+              p: parseFloat(p),
+              f: parseFloat(f),
+              c: parseFloat(c)
+            });
+          }
+        });
+        localStorage.setItem("foodItems", JSON.stringify(items));
+        alert("保存しました！");
+      });
+
+      // 🔄 リセットボタン
+      resetBtn.addEventListener("click", () => {
+        if (confirm("全ての項目をリセットしてもよろしいですか？")) {
+          localStorage.removeItem("foodItems");
+          itemList.innerHTML = "";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

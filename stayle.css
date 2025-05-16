@@ -1,0 +1,43 @@
+.top-container {
+    max-width: 480px;
+    margin: auto;
+    padding: 40px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, #f0f8ff, #e0f7fa);
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    margin-top: 60px;
+  }
+  
+  .top-container h1 {
+    font-size: 28px;
+    color: #0077cc;
+    margin-bottom: 10px;
+  }
+  
+  .top-container p {
+    font-size: 16px;
+    color: #444;
+    margin-bottom: 30px;
+  }
+  
+  .main-button {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 14px;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    background-color: #0077cc;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+  }
+  
+  .main-button:hover {
+    background-color: #005fa3;
+  }
+  
