@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>身体情報登録とPFC計算</title>
   <style>
     body {
@@ -10,13 +11,16 @@
       padding: 15px;
       color: #333;
       font-size: 14px;
+      position: relative;
     }
+
     h1 {
       text-align: center;
       color: #0077cc;
       font-size: 20px;
       margin-bottom: 10px;
     }
+
     .form-section, .result-section {
       max-width: 500px;
       margin: 15px auto;
@@ -25,12 +29,14 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       padding: 15px;
     }
+
     label {
       display: block;
       margin-top: 10px;
       font-weight: bold;
       font-size: 13px;
     }
+
     input, select {
       width: 100%;
       padding: 6px;
@@ -39,6 +45,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     button {
       width: 100%;
       padding: 10px;
@@ -51,25 +58,35 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
     button:hover { background-color: #005fa3; }
     .reset-button { background-color: #ff9900; }
     .reset-button:hover { background-color: #cc7a00; }
     .delete-button { background-color: #e74c3c; }
     .delete-button:hover { background-color: #c0392b; }
-    .result-section { background: #e9f6ff; font-size: 13px; }
-    .result-section div { margin-bottom: 8px; }
-    .back-button {
-      display: block;
-      margin: 20px auto 0;
-      padding: 6px 14px;
+
+    .result-section {
+      background: #e9f6ff;
       font-size: 13px;
-      background-color: #ccc;
-      color: #333;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
     }
-    .back-button:hover { background-color: #bbb; }
+
+    .result-section div {
+      margin-bottom: 8px;
+    }
+
+    @media screen and (max-width: 480px) {
+      body {
+        font-size: 13px;
+        padding: 10px;
+      }
+      .form-section, .result-section {
+        padding: 12px;
+      }
+      button {
+        font-size: 13px;
+        padding: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -122,8 +139,6 @@
     <div id="fat"></div>
     <div id="carb"></div>
   </div>
-
-  <button class="back-button" onclick="history.back()">← 戻る</button>
 
   <script>
     function calculate() {
