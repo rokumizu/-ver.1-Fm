@@ -42,17 +42,14 @@
     button:hover {
       background-color: #005fa3;
     }
-
-    /* 食事履歴ボタン（緑色） */
     .history-button {
-      background-color: #28a745; /* 緑色 */
+      background-color: #28a745;
       color: white;
       font-weight: bold;
     }
     .history-button:hover {
       background-color: #218838;
     }
-
     .back-button {
       display: inline-block;
       margin: 20px auto;
@@ -67,8 +64,6 @@
     .back-button:hover {
       background-color: #bbb;
     }
-
-    /* カレンダーのポップアップ */
     .popup {
       display: none;
       position: fixed;
@@ -99,11 +94,9 @@
 <h1>📅 日別食事メニュー管理</h1>
 
 <div class="controls">
-  <!-- 日付選択 -->
   <label for="dateSelect">日付を選択</label>
   <input type="date" id="dateSelect">
 
-  <!-- 食事時間選択 -->
   <label for="mealSelect">食事の時間</label>
   <select id="mealSelect">
     <option value="朝">朝</option>
@@ -111,31 +104,23 @@
     <option value="夜">夜</option>
   </select>
 
-  <!-- 食品選択（ドロップダウン） -->
   <label for="foodSelect">食品を選択</label>
   <select id="foodSelect">
     <option value="">選択してください</option>
   </select>
 
-  <!-- グラム数選択 -->
   <label for="foodGrams">グラム数</label>
   <input type="number" id="foodGrams" placeholder="グラム数を入力" min="1">
 
-  <!-- 食事メニュー入力 -->
   <button onclick="addMeal()">食事を追加</button>
-  <button onclick="calculatePFC()">計算する</button>
   
-  <!-- 食事履歴表示（緑色のボタン） -->
   <button class="history-button" onclick="openCalendarPopup()">食事履歴を見る</button>
 </div>
 
-<!-- 結果表示 -->
 <div id="summary" style="margin-top: 20px; font-size: 16px;"></div>
 
-<!-- 戻るボタン -->
 <button class="back-button" onclick="history.back()">← 戻る</button>
 
-<!-- カレンダーのポップアップ -->
 <div id="calendarPopup" class="popup">
   <div class="popup-content">
     <h3>日付を選択</h3>
@@ -146,12 +131,11 @@
 </div>
 
 <script>
-  // 追加された食品を管理する変数
   const foodItems = JSON.parse(localStorage.getItem("foodItems") || "[]");
 
-  // 食品をドロップダウンに表示する関数
   function populateFoodSelect() {
     const foodSelect = document.getElementById("foodSelect");
+    foodSelect.innerHTML = '<option value="">選択してください</option>';
     foodItems.forEach(item => {
       const option = document.createElement("option");
       option.value = item.name;
@@ -160,7 +144,6 @@
     });
   }
 
-  // 食事メニューを追加する関数
   function addMeal() {
     const date = document.getElementById("dateSelect").value;
     const meal = document.getElementById("mealSelect").value;
@@ -174,15 +157,13 @@
 
     const mealData = JSON.parse(localStorage.getItem("meals") || "{}");
     if (!mealData[date]) mealData[date] = { 朝: [], 昼: [], 夜: [] };
-
     mealData[date][meal].push({ foodName, grams });
     localStorage.setItem("meals", JSON.stringify(mealData));
 
     alert("食事が追加されました！");
-    calculatePFC();
+    calculatePFC(); // ← 自動で計算される
   }
 
-  // PFC計算
   function calculatePFC() {
     const date = document.getElementById("dateSelect").value;
     const meal = document.getElementById("mealSelect").value;
@@ -203,51 +184,45 @@
 
     const summary = document.getElementById("summary");
     summary.innerHTML = `
-      ${meal} の PFC:
-      <br>タンパク質（P）: ${totalProtein.toFixed(2)} g
-      <br>脂質（F）: ${totalFat.toFixed(2)} g
-      <br>炭水化物（C）: ${totalCarb.toFixed(2)} g
+      <strong>${date} - ${meal}</strong> の PFC:<br>
+      タンパク質（P）: ${totalProtein.toFixed(2)} g<br>
+      脂質（F）: ${totalFat.toFixed(2)} g<br>
+      炭水化物（C）: ${totalCarb.toFixed(2)} g
     `;
   }
 
-  // 食事履歴の表示
   function showMealHistory() {
-    const historyDiv = document.getElementById("summary");
     const date = document.getElementById("calendarDateSelect").value;
-    const mealData = JSON.parse(localStorage.getItem("meals") || "{}");
-    const selectedMealData = mealData[date] || {};
-
     if (!date) {
       alert("日付を選択してください！");
       return;
     }
 
+    const mealData = JSON.parse(localStorage.getItem("meals") || "{}");
+    const selectedMealData = mealData[date] || {};
     let mealHistory = `<h3>${date}の食事履歴:</h3>`;
+
     for (const meal in selectedMealData) {
       mealHistory += `<h4>${meal}</h4><ul>`;
       selectedMealData[meal].forEach(item => {
         mealHistory += `<li>${item.foodName} - ${item.grams}g</li>`;
       });
-      mealHistory += "</ul>";
+      mealHistory += `</ul>`;
     }
 
-    // 新しいウィンドウを開いて食事履歴を表示
     const mealHistoryWindow = window.open("", "_blank", "width=600,height=400");
     mealHistoryWindow.document.write(`<h3>${date}の食事履歴</h3>`);
     mealHistoryWindow.document.write(mealHistory);
   }
 
-  // カレンダーのポップアップを開く
   function openCalendarPopup() {
     document.getElementById("calendarPopup").style.display = "flex";
   }
 
-  // カレンダーのポップアップを閉じる
   function closeCalendarPopup() {
     document.getElementById("calendarPopup").style.display = "none";
   }
 
-  // 初期化
   window.addEventListener("DOMContentLoaded", () => {
     populateFoodSelect();
   });
